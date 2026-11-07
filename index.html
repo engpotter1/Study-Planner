@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة تنظيم ومتابعة المذاكرة - جدول الامتحانات</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts (Cairo & Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            inter: ['Inter', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .dark .glass-card {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #475569;
+    }
+    .checkbox-custom:checked + label .check-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- Header & Navigation -->
+  <header class="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800 glass-card">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3 space-x-reverse">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-graduation-cap text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">منظم الامتحانات والمذاكرة</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Exam Study Dashboard</p>
+        </div>
+      </div>
+
+      <!-- Action Tools -->
+      <div class="flex items-center space-x-2 space-x-reverse">
+        <button id="themeToggleBtn" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="تبديل الوضع الليلي">
+          <i class="fa-solid fa-moon dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:inline"></i>
+        </button>
+
+        <button onclick="resetAllProgress()" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl text-rose-600 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition" title="إعادة ضبط التقدم">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span>إعادة ضبط</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Progress Overview & Stats Banner -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Global Progress Card -->
+      <div class="lg:col-span-2 glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div class="space-y-2 max-w-lg">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
+              <i class="fa-solid fa-sparkles text-xs"></i> معدل إنجاز المواد
+            </span>
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">جاهز للامتحانات؟ استمر بتركيز!</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              تابع تقدمك في الشباتر وملفات الـ PDF لكل يوم دراسي. عند إنهاء كل فصل قم بتحديده لمتابعة نسبة التحصيل.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-4 bg-white/70 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shrink-0">
+            <div class="relative w-20 h-20 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                <path class="text-slate-200 dark:text-slate-700" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path id="progressCircle" class="text-indigo-600 transition-all duration-700 ease-out" stroke-dasharray="0, 100" stroke-width="3.5" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <span id="overallPercentage" class="absolute font-extrabold text-base text-slate-800 dark:text-white">0%</span>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">الشباتر المنجزة</p>
+              <p class="text-xl font-bold text-slate-900 dark:text-white"><span id="completedItemsCount">0</span> / <span id="totalItemsCount">11</span></p>
+              <span id="motivationalBadge" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">ابدأ أول مهمة! 🚀</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linear Progress Bar -->
+        <div class="mt-6 w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+          <div id="progressBarLinear" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full rounded-full w-0 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- Built-in Pomodoro Study Timer -->
+      <div class="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+              <i class="fa-solid fa-stopwatch text-sm"></i>
+            </span>
+            <h3 class="font-bold text-sm text-slate-800 dark:text-white">مؤقت المذاكرة (Pomodoro)</h3>
+          </div>
+          <span id="timerModeBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold">جلسة تركيز</span>
+        </div>
+
+        <div class="py-4 text-center">
+          <div id="timerDisplay" class="font-mono text-4xl sm:text-5xl font-black tracking-widest text-slate-900 dark:text-white">25:00</div>
+          <p id="timerMessage" class="text-xs text-slate-500 dark:text-slate-400 mt-1">25 دقيقة تركيز تام بدون مشتتات</p>
+        </div>
+
+        <div class="flex items-center justify-center gap-2 pt-2">
+          <button id="timerToggleBtn" onclick="toggleTimer()" class="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+            <i id="timerBtnIcon" class="fa-solid fa-play"></i>
+            <span id="timerBtnText">بدء</span>
+          </button>
+          <button onclick="resetTimer()" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="إعادة المؤقت">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+          </button>
+          <button onclick="switchTimerMode()" class="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="تبديل (مذاكرة / استراحة)">
+            <i class="fa-solid fa-mug-hot"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Filter & Search -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1">
+        <button onclick="filterDays('all')" class="day-tab-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo-600 text-white shadow-sm transition">
+          جميع الأيام
+        </button>
+        <button onclick="filterDays('sunday')" class="day-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition">
+          الأحد (1 مادة)
+        </button>
+        <button onclick="filterDays('tuesday')" class="day-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition">
+          الثلاثاء (مادتين)
+        </button>
+        <button onclick="filterDays('thursday')" class="day-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 border border-slate-200 dark:border-slate-700 transition">
+          الخميس (مادتين)
+        </button>
+      </div>
+
+      <div class="relative w-full sm:w-64">
+        <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="subjectSearch" oninput="handleSearch(this.value)" placeholder="ابحث عن مادة أو شابتر..." class="w-full pr-9 pl-4 py-2 rounded-xl text-xs sm:text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white" />
+      </div>
+    </div>
+
+    <!-- Days & Subjects Content Grid -->
+    <div id="scheduleGrid" class="space-y-8">
+      
+      <!-- DAY 1: الأحد (Sunday) -->
+      <section class="day-section" data-day="sunday">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-300 flex items-center justify-center font-black">
+              1
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                يوم الأحد <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(Sunday)</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">مقدمة في علم البيانات</p>
+            </div>
+          </div>
+          <span class="day-progress-tag px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            0% منجز
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Subject: Intro to Data Science -->
+          <div class="subject-card rounded-2xl p-5 border border-pink-200 dark:border-pink-900/50 bg-gradient-to-b from-pink-50/60 to-white dark:from-slate-800/90 dark:to-slate-900 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-pink-500 text-white flex items-center justify-center text-lg shadow-md shadow-pink-500/20">
+                  <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base text-slate-900 dark:text-white">Introduction to Data Science</h4>
+                  <p class="text-xs font-semibold text-pink-600 dark:text-pink-400">مقدمة في علم البيانات</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chapter Checklist -->
+            <div class="mt-4 pt-4 border-t border-pink-100 dark:border-slate-800 space-y-2.5">
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-ds-pdf1" data-id="ds-pdf1" class="hidden checkbox-custom" onchange="toggleItem('ds-pdf1')">
+                  <label for="item-ds-pdf1" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-pink-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-pink-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (1) - المنهج والأساسيات</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-pink-100 dark:bg-pink-950 text-pink-700 dark:text-pink-300 font-bold">PDF</span>
+              </div>
+            </div>
+
+            <!-- Custom Quick Note for Subject -->
+            <div class="mt-3">
+              <input type="text" data-subject="ds" onchange="saveSubjectNote('ds', this.value)" placeholder="ملاحظة سريعة للمادة..." class="subject-note-input w-full text-xs px-3 py-1.5 rounded-lg bg-pink-50/50 dark:bg-slate-800/40 border border-pink-200/60 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-pink-500 dark:text-slate-200">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DAY 2: الثلاثاء (Tuesday) -->
+      <section class="day-section" data-day="tuesday">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-300 flex items-center justify-center font-black">
+              2
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                يوم الثلاثاء <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(Tuesday)</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">أمن الحاسوب والإلكترونيات (مادتين)</p>
+            </div>
+          </div>
+          <span class="day-progress-tag px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            0% منجز
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+          <!-- Subject 1: Computer Security -->
+          <div class="subject-card rounded-2xl p-5 border border-sky-200 dark:border-sky-900/50 bg-gradient-to-b from-sky-50/60 to-white dark:from-slate-800/90 dark:to-slate-900 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-sky-500 text-white flex items-center justify-center text-lg shadow-md shadow-sky-500/20">
+                  <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base text-slate-900 dark:text-white">Computer Security</h4>
+                  <p class="text-xs font-semibold text-sky-600 dark:text-sky-400">أمن الحاسوب (3 شباتر)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chapters -->
+            <div class="mt-4 pt-4 border-t border-sky-100 dark:border-slate-800 space-y-2.5">
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-sec-ch1" data-id="sec-ch1" class="hidden checkbox-custom" onchange="toggleItem('sec-ch1')">
+                  <label for="item-sec-ch1" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-sky-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-sky-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">Chapter (ChP 1)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold">ChP 1</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-sec-ch2" data-id="sec-ch2" class="hidden checkbox-custom" onchange="toggleItem('sec-ch2')">
+                  <label for="item-sec-ch2" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-sky-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-sky-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">Chapter (ChP 2)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold">ChP 2</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-sec-ch3" data-id="sec-ch3" class="hidden checkbox-custom" onchange="toggleItem('sec-ch3')">
+                  <label for="item-sec-ch3" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-sky-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-sky-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">Chapter (ChP 3)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold">ChP 3</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <input type="text" data-subject="sec" onchange="saveSubjectNote('sec', this.value)" placeholder="ملاحظة سريعة لأمن الحاسوب..." class="subject-note-input w-full text-xs px-3 py-1.5 rounded-lg bg-sky-50/50 dark:bg-slate-800/40 border border-sky-200/60 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:text-slate-200">
+            </div>
+          </div>
+
+          <!-- Subject 2: Electronic -->
+          <div class="subject-card rounded-2xl p-5 border border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-b from-emerald-50/60 to-white dark:from-slate-800/90 dark:to-slate-900 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg shadow-md shadow-emerald-500/20">
+                  <i class="fa-solid fa-microchip"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base text-slate-900 dark:text-white">Electronic</h4>
+                  <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">الإلكترونيات (4 ملفات PDF)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- PDFs -->
+            <div class="mt-4 pt-4 border-t border-emerald-100 dark:border-slate-800 space-y-2.5">
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-elec-pdf1" data-id="elec-pdf1" class="hidden checkbox-custom" onchange="toggleItem('elec-pdf1')">
+                  <label for="item-elec-pdf1" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-emerald-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (1) - المحاضرة الأولى</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">1</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-elec-pdf2" data-id="elec-pdf2" class="hidden checkbox-custom" onchange="toggleItem('elec-pdf2')">
+                  <label for="item-elec-pdf2" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-emerald-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (2) - المحاضرة الثانية</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">2</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-elec-pdf3" data-id="elec-pdf3" class="hidden checkbox-custom" onchange="toggleItem('elec-pdf3')">
+                  <label for="item-elec-pdf3" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-emerald-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (3) - المحاضرة الثالثة</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">3</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-elec-pdf4" data-id="elec-pdf4" class="hidden checkbox-custom" onchange="toggleItem('elec-pdf4')">
+                  <label for="item-elec-pdf4" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-emerald-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-emerald-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (4) - المحاضرة الرابعة</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">4</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <input type="text" data-subject="elec" onchange="saveSubjectNote('elec', this.value)" placeholder="ملاحظة سريعة للإلكترونيات..." class="subject-note-input w-full text-xs px-3 py-1.5 rounded-lg bg-emerald-50/50 dark:bg-slate-800/40 border border-emerald-200/60 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:text-slate-200">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DAY 3: الخميس (Thursday) -->
+      <section class="day-section" data-day="thursday">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-violet-100 text-violet-600 dark:bg-violet-900/40 dark:text-violet-300 flex items-center justify-center font-black">
+              3
+            </div>
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                يوم الخميس <span class="text-xs font-normal text-slate-500 dark:text-slate-400">(Thursday)</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">نظام التشغيل والاحتمال (مادتين)</p>
+            </div>
+          </div>
+          <span class="day-progress-tag px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+            0% منجز
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
+          <!-- Subject 1: Operating System -->
+          <div class="subject-card rounded-2xl p-5 border border-purple-200 dark:border-purple-900/50 bg-gradient-to-b from-purple-50/60 to-white dark:from-slate-800/90 dark:to-slate-900 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-md shadow-purple-600/20">
+                  <i class="fa-solid fa-desktop"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base text-slate-900 dark:text-white">Operating System</h4>
+                  <p class="text-xs font-semibold text-purple-600 dark:text-purple-400">نظام التشغيل</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chapter -->
+            <div class="mt-4 pt-4 border-t border-purple-100 dark:border-slate-800 space-y-2.5">
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-os-pdf1" data-id="os-pdf1" class="hidden checkbox-custom" onchange="toggleItem('os-pdf1')">
+                  <label for="item-os-pdf1" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-purple-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-purple-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">PDF (1) - المفاهيم والجدولة</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold">PDF 1</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <input type="text" data-subject="os" onchange="saveSubjectNote('os', this.value)" placeholder="ملاحظة سريعة لنظم التشغيل..." class="subject-note-input w-full text-xs px-3 py-1.5 rounded-lg bg-purple-50/50 dark:bg-slate-800/40 border border-purple-200/60 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:text-slate-200">
+            </div>
+          </div>
+
+          <!-- Subject 2: Probability -->
+          <div class="subject-card rounded-2xl p-5 border border-amber-200 dark:border-amber-900/50 bg-gradient-to-b from-amber-50/60 to-white dark:from-slate-800/90 dark:to-slate-900 shadow-sm hover:shadow-md transition">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg shadow-md shadow-amber-500/20">
+                  <i class="fa-solid fa-dice"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base text-slate-900 dark:text-white">Probability</h4>
+                  <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">الاحتمال والإحصاء (شابترين)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chapters -->
+            <div class="mt-4 pt-4 border-t border-amber-100 dark:border-slate-800 space-y-2.5">
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-prob-ch1" data-id="prob-ch1" class="hidden checkbox-custom" onchange="toggleItem('prob-ch1')">
+                  <label for="item-prob-ch1" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-amber-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">Chapter (ChP 1)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold">ChP 1</span>
+              </div>
+
+              <div class="chapter-item flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                  <input type="checkbox" id="item-prob-ch2" data-id="prob-ch2" class="hidden checkbox-custom" onchange="toggleItem('prob-ch2')">
+                  <label for="item-prob-ch2" class="w-5 h-5 rounded-md border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center cursor-pointer hover:border-amber-500 transition">
+                    <i class="fa-solid fa-check text-[10px] text-amber-600 check-icon opacity-0 scale-50 transition-all"></i>
+                  </label>
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 item-title">Chapter (ChP 2)</span>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-bold">ChP 2</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <input type="text" data-subject="prob" onchange="saveSubjectNote('prob', this.value)" placeholder="ملاحظة سريعة للاحتمالات والقوانين..." class="subject-note-input w-full text-xs px-3 py-1.5 rounded-lg bg-amber-50/50 dark:bg-slate-800/40 border border-amber-200/60 dark:border-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500 dark:text-slate-200">
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Scratchpad & General Study Notes -->
+    <div class="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm mt-8">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-pen-nib text-indigo-600 dark:text-indigo-400"></i>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">ملاحظات المراجعة والمسائل المهمة</h3>
+        </div>
+        <span class="text-xs text-slate-400">حفظ تلقائي</span>
+      </div>
+      <textarea id="generalNotes" oninput="saveGeneralNotes(this.value)" rows="3" placeholder="سجل هنا النقاط الهامة، القوانين المنسية، مواعيد المراجعة مع أصدقائك..." class="w-full p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100"></textarea>
+    </div>
+
+  </main>
+
+  <!-- Audio Tone Synthesizer for notifications without external assets -->
+  <script>
+    // Audio Chime Generator using Web Audio API
+    function playBeep(type = 'success') {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+          osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+          gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.4);
+        } else if (type === 'timerEnd') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.2);
+          gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.6);
+        }
+      } catch (e) {
+        console.warn('AudioContext not allowed or supported yet');
+      }
+    }
+
+    // STATE MANAGEMENT
+    const STORAGE_KEY = 'study_planner_state_v1';
+    let appState = {
+      completed: {}, // id: boolean
+      subjectNotes: {}, // key: note
+      generalNotes: '',
+      theme: 'light'
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error('Error parsing stored data');
+        }
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    // TOGGLE CHECKBOX
+    function toggleItem(id) {
+      const checkbox = document.getElementById('item-' + id);
+      if (!checkbox) return;
+
+      appState.completed[id] = checkbox.checked;
+      saveState();
+
+      if (checkbox.checked) {
+        playBeep('success');
+      }
+
+      updateAllProgress();
+      checkAllCompletedCelebration();
+    }
+
+    function saveSubjectNote(key, val) {
+      if (!appState.subjectNotes) appState.subjectNotes = {};
+      appState.subjectNotes[key] = val;
+      saveState();
+    }
+
+    function saveGeneralNotes(val) {
+      appState.generalNotes = val;
+      saveState();
+    }
+
+    // RECALCULATE PROGRESS
+    function updateAllProgress() {
+      const allCheckboxes = document.querySelectorAll('.chapter-item input[type="checkbox"]');
+      const totalCount = allCheckboxes.length;
+      let completedCount = 0;
+
+      allCheckboxes.forEach(cb => {
+        const itemId = cb.getAttribute('data-id');
+        const checked = !!appState.completed[itemId];
+        cb.checked = checked;
+        if (checked) completedCount++;
+
+        // Add line-through styling on parent title
+        const titleSpan = cb.closest('.chapter-item').querySelector('.item-title');
+        if (titleSpan) {
+          if (checked) {
+            titleSpan.classList.add('line-through', 'text-slate-400', 'dark:text-slate-500');
+          } else {
+            titleSpan.classList.remove('line-through', 'text-slate-400', 'dark:text-slate-500');
+          }
+        }
+      });
+
+      const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+      // Update Header Stats
+      document.getElementById('completedItemsCount').innerText = completedCount;
+      document.getElementById('totalItemsCount').innerText = totalCount;
+      document.getElementById('overallPercentage').innerText = percentage + '%';
+      document.getElementById('progressBarLinear').style.width = percentage + '%';
+
+      // SVG Circle Dash
+      const circle = document.getElementById('progressCircle');
+      if (circle) {
+        circle.setAttribute('stroke-dasharray', `${percentage}, 100`);
+      }
+
+      // Motivational Badge Text
+      const badge = document.getElementById('motivationalBadge');
+      if (percentage === 0) badge.innerText = 'ابدأ أول مهمة! 🚀';
+      else if (percentage < 40) badge.innerText = 'بداية ممتازة، واصل! 🔥';
+      else if (percentage < 70) badge.innerText = 'قطعت نصف المسافة تقريباً! 💪';
+      else if (percentage < 100) badge.innerText = 'اقتربت جداً من إنهاء كل المواد! 🎯';
+      else badge.innerText = 'ألف مبروك! أتممت مراجعة كل المنهج! 🏆';
+
+      // Update per-day progress
+      document.querySelectorAll('.day-section').forEach(section => {
+        const dayCheckboxes = section.querySelectorAll('input[type="checkbox"]');
+        let dayDone = 0;
+        dayCheckboxes.forEach(cb => {
+          if (cb.checked) dayDone++;
+        });
+        const dayPercent = dayCheckboxes.length > 0 ? Math.round((dayDone / dayCheckboxes.length) * 100) : 0;
+        const tag = section.querySelector('.day-progress-tag');
+        if (tag) {
+          tag.innerText = dayPercent + '% منجز';
+          if (dayPercent === 100) {
+            tag.className = 'day-progress-tag px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+          } else {
+            tag.className = 'day-progress-tag px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300';
+          }
+        }
+      });
+    }
+
+    function checkAllCompletedCelebration() {
+      const allCheckboxes = document.querySelectorAll('.chapter-item input[type="checkbox"]');
+      const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+      if (allChecked && allCheckboxes.length > 0) {
+        confetti({
+          particleCount: 120,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+
+    function resetAllProgress() {
+      const confirmReset = window.confirm("هل أنت متأكد من رغبتك في إعادة ضبط تقدم المذاكرة بالكامل؟");
+      if (confirmReset) {
+        appState.completed = {};
+        saveState();
+        updateAllProgress();
+      }
+    }
+
+    // DAY FILTER TABS
+    function filterDays(dayKey) {
+      const tabs = document.querySelectorAll('.day-tab-btn');
+      tabs.forEach(tab => {
+        tab.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        tab.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+      });
+
+      // active button
+      event.currentTarget.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+      event.currentTarget.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
+
+      const sections = document.querySelectorAll('.day-section');
+      sections.forEach(sec => {
+        if (dayKey === 'all' || sec.getAttribute('data-day') === dayKey) {
+          sec.style.display = 'block';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    }
+
+    // SEARCH FILTER
+    function handleSearch(query) {
+      const clean = query.trim().toLowerCase();
+      const subjectCards = document.querySelectorAll('.subject-card');
+
+      subjectCards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (!clean || text.includes(clean)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // POMODORO TIMER LOGIC
+    let timerDuration = 25 * 60; // 25 mins default
+    let timeRemaining = timerDuration;
+    let timerInterval = null;
+    let isRunning = false;
+    let isBreakMode = false;
+
+    function updateTimerDisplay() {
+      const m = Math.floor(timeRemaining / 60);
+      const s = timeRemaining % 60;
+      document.getElementById('timerDisplay').innerText = 
+        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+      if (isRunning) {
+        // Pause
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById('timerBtnText').innerText = 'استئناف';
+        document.getElementById('timerBtnIcon').className = 'fa-solid fa-play';
+      } else {
+        // Start
+        isRunning = true;
+        document.getElementById('timerBtnText').innerText = 'إيقاف';
+        document.getElementById('timerBtnIcon').className = 'fa-solid fa-pause';
+
+        timerInterval = setInterval(() => {
+          if (timeRemaining > 0) {
+            timeRemaining--;
+            updateTimerDisplay();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            playBeep('timerEnd');
+            document.getElementById('timerBtnText').innerText = 'بدء';
+            document.getElementById('timerBtnIcon').className = 'fa-solid fa-play';
+
+            if (!isBreakMode) {
+              // Switch to Break
+              isBreakMode = true;
+              timeRemaining = 5 * 60;
+              document.getElementById('timerModeBadge').innerText = 'استراحة قهوة ☕';
+              document.getElementById('timerModeBadge').className = 'text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold';
+              document.getElementById('timerMessage').innerText = 'أحسنت! خذ 5 دقائق استراحة واستعد للجولة التالية.';
+            } else {
+              // Switch back to Focus
+              isBreakMode = false;
+              timeRemaining = 25 * 60;
+              document.getElementById('timerModeBadge').innerText = 'جلسة تركيز';
+              document.getElementById('timerModeBadge').className = 'text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold';
+              document.getElementById('timerMessage').innerText = '25 دقيقة تركيز تام بدون مشتتات';
+            }
+            updateTimerDisplay();
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timeRemaining = isBreakMode ? 5 * 60 : 25 * 60;
+      updateTimerDisplay();
+      document.getElementById('timerBtnText').innerText = 'بدء';
+      document.getElementById('timerBtnIcon').className = 'fa-solid fa-play';
+    }
+
+    function switchTimerMode() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('timerBtnText').innerText = 'بدء';
+      document.getElementById('timerBtnIcon').className = 'fa-solid fa-play';
+
+      isBreakMode = !isBreakMode;
+      if (isBreakMode) {
+        timeRemaining = 5 * 60;
+        document.getElementById('timerModeBadge').innerText = 'استراحة قهوة ☕';
+        document.getElementById('timerModeBadge').className = 'text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold';
+        document.getElementById('timerMessage').innerText = 'استراحة 5 دقائق لتجديد النشاط.';
+      } else {
+        timeRemaining = 25 * 60;
+        document.getElementById('timerModeBadge').innerText = 'جلسة تركيز';
+        document.getElementById('timerModeBadge').className = 'text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-bold';
+        document.getElementById('timerMessage').innerText = '25 دقيقة تركيز تام بدون مشتتات';
+      }
+      updateTimerDisplay();
+    }
+
+    // THEME TOGGLE
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    themeToggleBtn.addEventListener('click', () => {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        appState.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        appState.theme = 'dark';
+      }
+      saveState();
+    });
+
+    // INITIALIZATION
+    window.onload = function () {
+      loadState();
+
+      // Set Theme
+      if (appState.theme === 'dark' || (!appState.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      }
+
+      // Restore notes
+      if (appState.generalNotes) {
+        const gn = document.getElementById('generalNotes');
+        if (gn) gn.value = appState.generalNotes;
+      }
+
+      if (appState.subjectNotes) {
+        document.querySelectorAll('.subject-note-input').forEach(input => {
+          const key = input.getAttribute('data-subject');
+          if (appState.subjectNotes[key]) {
+            input.value = appState.subjectNotes[key];
+          }
+        });
+      }
+
+      updateAllProgress();
+      updateTimerDisplay();
+    };
+  </script>
+</body>
+</html>
